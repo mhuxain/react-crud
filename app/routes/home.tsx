@@ -9,5 +9,25 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  return (
+    <div>
+      <Welcome />
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <a 
+          href="/users" 
+          style={{
+            display: "inline-block",
+            padding: "10px 20px",
+            backgroundColor: "#4caf50",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "4px",
+            fontWeight: "bold"
+          }}
+        >
+          Go to Users Management
+        </a>
+      </div>
+    </div>
+  );
 }
