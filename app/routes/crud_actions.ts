@@ -158,3 +158,63 @@ export function createDeleteHandler<T extends Entity>(
     }
   };
 }
+
+// Convenience function that creates all API handlers and returns them as an object
+export function createApiHandlers<T extends Entity>(
+  baseUrl: string,
+  setItems: React.Dispatch<React.SetStateAction<T[]>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setError: React.Dispatch<React.SetStateAction<string | null>>,
+  setFormData: React.Dispatch<React.SetStateAction<T>>,
+  items: T[],
+  clearFormData: T,
+  entityName: string = 'item'
+) {
+  return {
+    handleFetch: createFetchHandler<T>(baseUrl, setItems, setLoading, setError, `${entityName}s`),
+    handleCreate: createCreateHandler<T>(baseUrl, setItems, setError, setFormData, items, clearFormData, entityName),
+    handleUpdate: createUpdateHandler<T>(baseUrl, setItems, setError, setFormData, items, clearFormData, entityName),
+    handleDelete: createDeleteHandler<T>(baseUrl, setItems, setError, items, entityName)
+  };
+}
+
+// Complete CRUD hook that manages all state and handlers
+export function useCrudState<T extends Entity>(
+  entityName: string = 'item',
+  baseUrl: string,
+  clearFormData: T
+) {
+  const [items, setItems] = React.useState<T[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [formData, setFormData] = React.useState<T>(clearFormData);
+
+  const handlers = createApiHandlers<T>(
+    baseUrl,
+    setItems,
+    setLoading,
+    setError,
+    setFormData,
+    items,
+    clearFormData,
+    entityName
+  );
+
+  const resetForm = () => {
+    setFormData(clearFormData);
+    setError(null);
+  };
+
+  return {
+    // State
+    items,
+    loading,
+    error,
+    formData,
+    setFormData,
+    setError,
+    // Handlers
+    ...handlers,
+    resetForm
+  };
+}

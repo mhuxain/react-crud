@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import type { Route } from "./+types/users";
 import { 
-  createFetchHandler, 
-  createCreateHandler, 
-  createUpdateHandler, 
-  createDeleteHandler 
+  useCrudState
 } from "./crud_actions";
 import type { Entity } from "./crud_actions";
 
@@ -29,23 +26,24 @@ const baseUrl = () => 'https://jsonplaceholder.typicode.com/users'
 
 
 export default function Users() {
-  // State variables - think of these as the component's memory
-  const [users, setUsers] = useState<User[]>([]); // List of all users
-  const [loading, setLoading] = useState(true); // To show loading state
-  const [error, setError] = useState<string | null>(null); // To handle errors
-  const [formData, setFormData] = useState<User>({ name: "", email: "" }); // Single form state for create/edit
-
-  // Create handler functions using generic higher-order functions
-  const handleFetchUsers = createFetchHandler<User>(baseUrl(), setUsers, setLoading, setError, 'users');
-  const handleCreateUser = createCreateHandler<User>(baseUrl(), setUsers, setError, setFormData, users, { name: "", email: "" }, 'user');
-  const handleUpdateUser = createUpdateHandler<User>(baseUrl(), setUsers, setError, setFormData, users, { name: "", email: "" }, 'user');
-  const handleDeleteUser = createDeleteHandler<User>(baseUrl(), setUsers, setError, users, 'user');
-
-  // Function to cancel editing (clear form)
-  const resetForm = () => {
-    setFormData({ name: "", email: "" });
-    setError(null);
-  };
+  // Use the CRUD state hook that manages all state and handlers
+  const {
+    items: users,
+    loading,
+    error,
+    formData,
+    setFormData,
+    setError,
+    handleFetch,
+    handleCreate,
+    handleUpdate,
+    handleDelete,
+    resetForm
+  } = useCrudState<User>(
+    'user',
+    baseUrl(),
+    { name: "", email: "" }
+  );
 
 
 
@@ -61,9 +59,9 @@ export default function Users() {
     
     // Decide whether to create or update based on presence of id
     if (formData.id) {
-      handleUpdateUser(formData);
+      handleUpdate(formData);
     } else {
-      handleCreateUser(formData);
+      handleCreate(formData);
     }
   };
 
@@ -79,7 +77,7 @@ export default function Users() {
 
   // useEffect hook - runs when component mounts (loads for first time)
   useEffect(() => {
-    handleFetchUsers();
+    handleFetch();
   }, []); // Empty array means this only runs once when component loads
 
   return (
@@ -90,7 +88,7 @@ export default function Users() {
           className="reset-button"
           onClick={() => {
             if (window.confirm("Reload data from API?")) {
-              handleFetchUsers();
+              handleFetch();
             }
           }}
         >
@@ -194,7 +192,7 @@ export default function Users() {
                       className="btn-delete"
                       onClick={() => {
                         if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
-                          handleDeleteUser(user.id);
+                          handleDelete(user.id);
                         }
                       }}
                     >
